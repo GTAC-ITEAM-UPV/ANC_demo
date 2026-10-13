@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANC - PIME-FxNLMS</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:        #f4f2ee;
+    --panel:     #ffffff;
+    --panel-2:   #ece9e3;
+    --border:    #ddd8d0;
+    --text:      #1d1f24;
+    --text-dim:  #6b7079;
+    --red:       #d5372a;
+    --red-dim:   rgba(213,55,42,.12);
+    --blue:      #2f6690;
+    --blue-dim:  rgba(47,102,144,.12);
+  }
+
+  *{
+    box-sizing:border-box;
+  }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Sora',system-ui,sans-serif;
+    display:flex;
+    justify-content:center;
+    padding:56px 20px 80px;
+  }
+
+  main{
+    width:100%;
+    max-width:640px;
+  }
+
+  /* ---------------- TABS ---------------- */
+
+  .tabs{
+    display:flex;
+    gap:4px;
+    margin-bottom:28px;
+    padding:4px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+  }
+
+  .tab{
+    flex:1;
+    border:none;
+    background:transparent;
+    color:var(--text-dim);
+    font-family:'Sora',system-ui,sans-serif;
+    font-size:13px;
+    font-weight:500;
+    padding:11px 14px;
+    border-radius:7px;
+    cursor:pointer;
+    transition:
+      background .2s ease,
+      color .2s ease;
+  }
+
+  .tab:hover{
+    color:var(--text);
+  }
+
+  .tab.active{
+    background:var(--panel-2);
+    color:var(--text);
+  }
+
+  /* ---------------- HEADER ---------------- */
+
+  header{
+    margin-bottom:28px;
+  }
+
+  h1{
+    font-size:26px;
+    font-weight:600;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+
+  header p{
+    margin:0;
+    color:var(--text-dim);
+    font-size:15px;
+    line-height:1.5;
+    max-width:52ch;
+  }
+
+  .repo-link{
+  display:inline-block;
+  margin-bottom:20px;
+  color:var(--blue);
+  font-size:13px;
+  font-weight:500;
+  text-decoration:none;
+  border-bottom:1px solid transparent;
+  transition:border-color .15s ease;
+  }
+
+  .repo-link:hover{
+  border-bottom-color:var(--blue);
+  }
+
+  /* ---------------- PANEL ---------------- */
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 1px 3px rgba(0,0,0,.04);
+  }
+
+  .media{
+    position:relative;
+    aspect-ratio:16/9;
+    background:#0c0e11;
+  }
+
+  video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    cursor:pointer;
+  }
+
+  /* ---------------- START LAYER ---------------- */
+
+  .start-layer{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(12,14,17,.55);
+    cursor:pointer;
+    transition:opacity .25s ease;
+  }
+
+  .start-layer.hidden{
+    opacity:0;
+    pointer-events:none;
+  }
+
+  .start-btn{
+    width:64px;
+    height:64px;
+    border-radius:50%;
+    background:var(--red);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 0 0 6px rgba(213,55,42,.28);
+  }
+
+  .start-btn svg{
+    width:20px;
+    height:20px;
+    margin-left:3px;
+  }
+
+  .start-label{
+    position:absolute;
+    bottom:26px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:#e8e6e1;
+    letter-spacing:.02em;
+  }
+
+  /* ---------------- FULLSCREEN ---------------- */
+
+  .fs-btn{
+    position:absolute;
+    top:12px;
+    right:12px;
+    width:34px;
+    height:34px;
+    border:none;
+    border-radius:7px;
+    background:rgba(12,14,17,.45);
+    color:#f4f2ee;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+
+  .fs-btn:hover{
+    background:rgba(12,14,17,.7);
+  }
+
+  .fs-btn svg{
+    width:17px;
+    height:17px;
+  }
+
+  /* ---------------- SCRUB BAR ---------------- */
+
+  .scrub-bar{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px 12px;
+    background:linear-gradient(to top, rgba(12,14,17,.75), transparent);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease;
+  }
+
+  .media:hover .scrub-bar{
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  .scrub-bar input[type="range"]{
+    flex:1;
+    accent-color:var(--red);
+    height:4px;
+    cursor:pointer;
+  }
+
+  .scrub-bar .time{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:#e8e6e1;
+    white-space:nowrap;
+  }
+
+  /* ---------------- CONTROLS ---------------- */
+
+  .controls{
+    padding:22px 24px 24px;
+    border-top:1px solid var(--border);
+  }
+
+  .switch-row{
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+
+  .switch-end{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    width:78px;
+    letter-spacing:.02em;
+    transition:color .2s ease;
+  }
+
+  .switch-end.left{
+    text-align:right;
+    color:var(--blue);
+  }
+
+  .switch-end.right{
+    text-align:left;
+    color:var(--red);
+  }
+
+  .switch-end.dim{
+    color:var(--text-dim);
+    opacity:.55;
+  }
+
+  .track{
+    position:relative;
+    flex:1;
+    height:40px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:20px;
+    cursor:pointer;
+  }
+
+  .knob{
+    position:absolute;
+    top:3px;
+    left:3px;
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    background:var(--blue);
+    box-shadow:0 0 0 5px var(--blue-dim);
+    transition:
+      left .22s cubic-bezier(.4,0,.2,1),
+      background .22s ease,
+      box-shadow .22s ease;
+  }
+
+  .track.on .knob{
+    left:calc(100% - 37px);
+    background:var(--red);
+    box-shadow:0 0 0 5px var(--red-dim);
+  }
+
+  /* ---------------- EXPLANATION ---------------- */
+
+  .explanation{
+    margin-top:28px;
+    padding:22px 24px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:0 1px 3px rgba(0,0,0,.04);
+  }
+
+  .explanation h2{
+    margin:0 0 10px;
+    font-size:16px;
+    font-weight:600;
+  }
+
+  .explanation p{
+    margin:0;
+    color:var(--text-dim);
+    font-size:14px;
+    line-height:1.65;
+  }
+
+  /* ---------------- MOBILE ---------------- */
+
+  @media (max-width:520px){
+    body{
+      padding:30px 14px 50px;
+    }
+
+    h1{
+      font-size:23px;
+    }
+
+    .controls{
+      padding:20px 16px;
+    }
+
+    .switch-row{
+      gap:10px;
+    }
+
+    .switch-end{
+      width:68px;
+      font-size:11px;
+    }
+
+    .explanation{
+      padding:20px 18px;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<main>
+
+  <!-- ================= TABS ================= -->
+
+  <div class="tabs">
+
+    <button class="tab active" data-algorithm="0">
+      PIME-FxNLMS
+    </button>
+
+    <button class="tab" data-algorithm="1">
+      FxNLMS without online path estimation
+    </button>
+
+  </div>
+
+
+  <!-- ================= HEADER ================= -->
+
+  <header>
+
+    <h1 id="title">
+      Real time PIME-FxNLMS demo
+    </h1>
+
+    <p id="description">
+      Put on headphones and flip the switch to swap the audio between the
+      raw noise and the actively cancelled signal.
+    </p>
+
+  </header>
+  
+  <a href="https://github.com/[usuario]/[repo]" class="repo-link" target="_blank" rel="noopener">
+  View source, paper & MATLAB/Simulink code on GitHub →
+  </a>
+
+  <!-- ================= VIDEO + CONTROLS ================= -->
+
+  <div class="panel">
+
+    <div class="media">
+
+      <video id="video" playsinline muted></video>
+
+
+      <!-- Start -->
+
+      <div class="start-layer" id="startLayer">
+
+        <div class="start-btn">
+
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M6 4L19 12L6 20V4Z"
+              fill="#0c0e11"
+            />
+          </svg>
+
+        </div>
+
+        <span class="start-label">
+          start demo
+        </span>
+
+      </div>
+
+
+      <!-- Fullscreen -->
+
+      <button
+        class="fs-btn"
+        id="fsBtn"
+        aria-label="Toggle fullscreen"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+
+          <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3"/>
+
+        </svg>
+
+      </button>
+
+
+      <!-- Scrub -->
+
+      <div class="scrub-bar" id="scrubBar">
+
+        <input
+          type="range"
+          id="seek"
+          min="0"
+          max="100"
+          value="0"
+          step="0.1"
+        >
+
+        <span class="time" id="timeLabel">
+          0:00 / -0:00
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- ANC switch -->
+
+    <div class="controls">
+
+      <div class="switch-row">
+
+        <span
+          class="switch-end left"
+          id="labelOff"
+        >
+          ANC OFF
+        </span>
+
+        <div
+          class="track"
+          id="track"
+          role="button"
+          aria-pressed="false"
+          aria-label="Toggle active noise control"
+          tabindex="0"
+        >
+
+          <div class="knob" id="knob"></div>
+
+        </div>
+
+        <span
+          class="switch-end right dim"
+          id="labelOn"
+        >
+          ANC ON
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= EXPLANATION ================= -->
+
+  <div class="explanation">
+
+    <h2 id="explanationTitle">
+      PIME-FxNLMS
+      
+    </h2>
+
+    <p id="explanationText">
+      This demo shows the real-time performance of the
+      PIME-FxNLMS algorithm. Use the switch to compare the original
+      noise signal with the actively cancelled signal.
+    </p>
+
+  </div>
+
+</main>
+
+
+<script>
+
+  /* =========================================================
+     ALGORITHM DATA
+     ========================================================= */
+
+  const algorithms = [
+
+    {
+      title: "Real time PIME-FxNLMS demo",
+
+      description:
+        "Put on headphones and flip the switch to swap the audio between the raw noise and the actively cancelled signal.",
+
+      explanationTitle:
+        "PIME-FxNLMS",
+
+      explanation: `
+        
+        In this real-time demo, white noise is played for 40 seconds. A microphone captures the noise and feeds the signal to a 
+        Speedgoat real-time system, where the algorithm generates an antinoise signal that is played through the loudspeaker located close to the microphone.
+        <br><br>
+        As the microphone is moved, the algorithm continuously updates its estimates of the primary and secondary paths to maintain effective noise cancellation. 
+        In the top-left corner of the video, a graph shows both the original white-noise signal with ANC off (blue) and the resulting signal after cancellation (red).
+        <br><br>
+        Use the switch to hear the difference between the original noise signal and the actively cancelled signal.
+      `,     
+
+      video:
+        "media/PIME.mp4",
+
+      audioOff:
+        "media/no_anc_video_14s_1.wav",
+
+      audioOn:
+        "media/error_video_14s_1.wav"
+    },
+
+
+    {
+      title: "Real time FxNLMS without online path estimation demo",
+
+      description:
+        "Put on headphones and flip the switch to swap the audio between the raw noise and the actively cancelled signal.",
+
+      explanationTitle:
+        "FxNLMS without online path estimation",
+
+      explanation: `
+        In this demo, a basic single-channel feedforward ANC system using the FxNLMS algorithm is presented. The secondary path 
+        is measured offline beforehand, with no online secondary-path estimation. The demo shows that when the microphone is moved away
+        from the position where the secondary path was measured, the system can no longer cancel the noise signal effectively.
+      
+      `,
+
+      video:
+        "media/fxnlms2.mp4",
+
+      audioOff:
+        "media/anc_off_02_fxnlms.wav",
+
+      audioOn:
+        "media/anc_on_02_fxnlms.wav"
+    }
+
+  ];
+
+
+  /* =========================================================
+     ELEMENTS
+     ========================================================= */
+
+  const video =
+    document.getElementById('video');
+
+  const startLayer =
+    document.getElementById('startLayer');
+
+  const track =
+    document.getElementById('track');
+
+  const labelOff =
+    document.getElementById('labelOff');
+
+  const labelOn =
+    document.getElementById('labelOn');
+
+  const title =
+    document.getElementById('title');
+
+  const description =
+    document.getElementById('description');
+
+  const explanationTitle =
+    document.getElementById('explanationTitle');
+
+  const explanationText =
+    document.getElementById('explanationText');
+
+  const seek =
+    document.getElementById('seek');
+
+  const timeLabel =
+    document.getElementById('timeLabel');
+
+  const fsBtn =
+    document.getElementById('fsBtn');
+
+  const mediaEl =
+    document.querySelector('.media');
+
+  const tabs =
+    document.querySelectorAll('.tab');
+
+
+  /* =========================================================
+     AUDIO
+     ========================================================= */
+
+  const audioOff =
+    document.createElement('audio');
+
+  const audioOn =
+    document.createElement('audio');
+
+  audioOff.preload = 'auto';
+  audioOn.preload = 'auto';
+
+  audioOff.loop = true;
+  audioOn.loop = true;
+
+  document.body.appendChild(audioOff);
+  document.body.appendChild(audioOn);
+
+
+  /* =========================================================
+     STATE
+     ========================================================= */
+
+  let currentAlgorithm = 0;
+  let ancOn = false;
+  let started = false;
+
+
+  /* =========================================================
+     LOAD ALGORITHM
+     ========================================================= */
+
+  function loadAlgorithm(index){
+
+    currentAlgorithm = index;
+
+    const algorithm =
+      algorithms[index];
+
+
+    /* Stop current media */
+
+    video.pause();
+    audioOff.pause();
+    audioOn.pause();
+
+
+    /* Reset state */
+
+    ancOn = false;
+    started = false;
+
+
+    /* Load files */
+
+    video.src = algorithm.video;
+
+    audioOff.src = algorithm.audioOff;
+    audioOn.src = algorithm.audioOn;
+
+
+    video.load();
+    audioOff.load();
+    audioOn.load();
+
+
+    /* Update text */
+
+    title.textContent =
+      algorithm.title;
+
+    description.textContent =
+      algorithm.description;
+
+    explanationTitle.textContent =
+      algorithm.explanationTitle;
+
+    explanationText.innerHTML = algorithm.explanation;
+
+
+
+    /* Reset controls */
+
+    video.currentTime = 0;
+
+    audioOff.currentTime = 0;
+    audioOn.currentTime = 0;
+
+    seek.value = 0;
+
+    timeLabel.textContent =
+      "0:00 / -0:00";
+
+
+    /* Reset ANC */
+
+    setState(false);
+
+
+    /* Show start screen */
+
+    startLayer.classList.remove('hidden');
+
+
+    /* Update tabs */
+
+    tabs.forEach((tab, i) => {
+      tab.classList.toggle(
+        'active',
+        i === index
+      );
+    });
+
+  }
+
+
+  /* =========================================================
+     ANC STATE
+     ========================================================= */
+
+  function setState(on){
+
+    ancOn = on;
+
+    track.classList.toggle(
+      'on',
+      on
+    );
+
+    track.setAttribute(
+      'aria-pressed',
+      on
+    );
+
+    audioOff.muted = on;
+    audioOn.muted = !on;
+
+    labelOff.classList.toggle(
+      'dim',
+      on
+    );
+
+    labelOn.classList.toggle(
+      'dim',
+      !on
+    );
+
+  }
+
+
+  /* =========================================================
+     START
+     ========================================================= */
+
+  function begin(){
+
+    if(started)
+      return;
+
+    started = true;
+
+    setState(false);
+
+    video.currentTime = 0;
+
+    audioOff.currentTime = 0;
+    audioOn.currentTime = 0;
+
+
+    Promise.all([
+
+      video.play(),
+      audioOff.play(),
+      audioOn.play()
+
+    ]).catch(()=>{});
+
+
+    startLayer.classList.add(
+      'hidden'
+    );
+
+  }
+
+
+  /* =========================================================
+     VIDEO / AUDIO SYNCHRONISATION
+     ========================================================= */
+
+  video.addEventListener(
+    'timeupdate',
+    () => {
+
+      if(
+        Math.abs(
+          audioOff.currentTime -
+          video.currentTime
+        ) > 0.15
+      ){
+
+        audioOff.currentTime =
+          video.currentTime;
+
+      }
+
+
+      if(
+        Math.abs(
+          audioOn.currentTime -
+          video.currentTime
+        ) > 0.15
+      ){
+
+        audioOn.currentTime =
+          video.currentTime;
+
+      }
+
+    }
+  );
+
+
+  /* =========================================================
+     VIDEO END
+     ========================================================= */
+
+  video.addEventListener(
+    'ended',
+    () => {
+
+      video.currentTime = 0;
+
+      audioOff.currentTime = 0;
+      audioOn.currentTime = 0;
+
+
+      Promise.all([
+
+        video.play(),
+        audioOff.play(),
+        audioOn.play()
+
+      ]).catch(()=>{});
+
+    }
+  );
+
+
+  /* =========================================================
+     START CLICK
+     ========================================================= */
+
+  startLayer.addEventListener(
+    'click',
+    begin
+  );
+
+
+  /* =========================================================
+     VIDEO CLICK
+     ========================================================= */
+
+  video.addEventListener(
+    'click',
+    () => {
+
+      if(!started){
+
+        begin();
+        return;
+
+      }
+
+
+      if(video.paused){
+
+        video.play();
+        audioOff.play();
+        audioOn.play();
+
+      }else{
+
+        video.pause();
+        audioOff.pause();
+        audioOn.pause();
+
+      }
+
+    }
+  );
+
+
+  /* =========================================================
+     ANC SWITCH
+     ========================================================= */
+
+  track.addEventListener(
+    'click',
+    () => {
+
+      if(!started)
+        return;
+
+      setState(!ancOn);
+
+    }
+  );
+
+
+  track.addEventListener(
+    'keydown',
+    (e) => {
+
+      if(
+        e.key === 'Enter' ||
+        e.key === ' '
+      ){
+
+        e.preventDefault();
+
+        if(!started)
+          return;
+
+        setState(!ancOn);
+
+      }
+
+    }
+  );
+
+
+  /* =========================================================
+     SCRUB BAR
+     ========================================================= */
+
+  function formatTime(s){
+
+    s = Math.max(
+      0,
+      Math.floor(s)
+    );
+
+    const m =
+      Math.floor(s / 60);
+
+    const sec =
+      String(s % 60)
+        .padStart(2, '0');
+
+    return `${m}:${sec}`;
+
+  }
+
+
+  video.addEventListener(
+    'loadedmetadata',
+    () => {
+
+      seek.max =
+        video.duration;
+
+    }
+  );
+
+
+  video.addEventListener(
+    'timeupdate',
+    () => {
+
+      if(!seek.matches(':active')){
+
+        seek.value =
+          video.currentTime;
+
+      }
+
+
+      const remaining =
+        video.duration -
+        video.currentTime;
+
+
+      timeLabel.textContent =
+        `${formatTime(video.currentTime)} / -${formatTime(remaining)}`;
+
+    }
+  );
+
+
+  seek.addEventListener(
+    'input',
+    () => {
+
+      const t =
+        parseFloat(seek.value);
+
+
+      video.currentTime = t;
+
+      audioOff.currentTime = t;
+      audioOn.currentTime = t;
+
+    }
+  );
+
+
+  /* =========================================================
+     FULLSCREEN
+     ========================================================= */
+
+  const iconExpand =
+    '<path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3"/>';
+
+
+  const iconCollapse =
+    '<path d="M9 3v3a2 2 0 0 1-2 2H4M15 3v3a2 2 0 0 0 2 2h3M21 15h-3a2 2 0 0 0-2 2v3M3 15h3a2 2 0 0 1 2 2v3"/>';
+
+
+  function isFullscreen(){
+
+    return (
+      document.fullscreenElement ||
+      document.webkitFullscreenElement
+    );
+
+  }
+
+
+  function updateFsIcon(){
+
+    fsBtn.querySelector('svg').innerHTML =
+      isFullscreen()
+        ? iconCollapse
+        : iconExpand;
+
+  }
+
+
+  fsBtn.addEventListener(
+    'click',
+    (e) => {
+
+      e.stopPropagation();
+
+
+      if(!isFullscreen()){
+
+        const request =
+          mediaEl.requestFullscreen ||
+          mediaEl.webkitRequestFullscreen;
+
+        if(request)
+          request.call(mediaEl);
+
+      }else{
+
+        const exit =
+          document.exitFullscreen ||
+          document.webkitExitFullscreen;
+
+        if(exit)
+          exit.call(document);
+
+      }
+
+    }
+  );
+
+
+  document.addEventListener(
+    'fullscreenchange',
+    updateFsIcon
+  );
+
+  document.addEventListener(
+    'webkitfullscreenchange',
+    updateFsIcon
+  );
+
+
+  /* =========================================================
+     TABS
+     ========================================================= */
+
+  tabs.forEach((tab) => {
+
+    tab.addEventListener(
+      'click',
+      () => {
+
+        const index =
+          Number(
+            tab.dataset.algorithm
+          );
+
+        if(index === currentAlgorithm)
+          return;
+
+        loadAlgorithm(index);
+
+      }
+    );
+
+  });
+
+
+  /* =========================================================
+     INITIAL LOAD
+     ========================================================= */
+
+  loadAlgorithm(0);
+
+</script>
+
+</body>
+</html>
